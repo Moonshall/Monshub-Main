@@ -10,6 +10,7 @@ local Window = WindUI:CreateWindow({
 	Icon = "rbxassetid://81294956922394",
 	
 	HideSearchBar = false,
+	Keybind = Enum.KeyCode.RightControl, -- Tekan Right Ctrl untuk toggle UI
 	
 	OpenButton = {
 		Title = "Open Monshub",
