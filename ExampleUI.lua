@@ -3,9 +3,9 @@ local NatUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/dy1zn4t
 
 -- Create Window
 local Window = NatUI:CreateWindow({
-	Title = "MonsHub | v0.0.0.0",
+	Title = "MonsHub",
 	Icon = "rbxassetid://81294956922394",
-	Author = "by Lenzo",
+	Author = "by Mons",
 	Folder = "MonsHub",
 	Size = UDim2.fromOffset(580, 460),
 	LiveSearchDropdown = true,
@@ -44,7 +44,7 @@ Tabs.MainTab:Button({
 	Callback = function()
 		NatUI:Notify({
 			Title = "MonsHub Info",
-			Content = "Version: v0.0.3.7\nDeveloped by Lenzo",
+			Content = "Version: v0.0.0.1\nDeveloped by Mons",
 			Icon = "info",
 			Duration = 5,
 		})
