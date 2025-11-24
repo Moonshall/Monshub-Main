@@ -3,8 +3,8 @@ local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/rel
 
 -- Create Window
 local Window = WindUI:CreateWindow({
-	Title = "Monshub - Premium | v0.0.3.7",
-	Author = "by Lenzo",
+	Title = "Monshub  | v0.0.0.0",
+	Author = "by Mons",
 	Folder = "Monshub",
 	NewElements = true,
 	Icon = "rbxassetid://81294956922394",
@@ -14,10 +14,12 @@ local Window = WindUI:CreateWindow({
 	
 	OpenButton = {
 		Title = "Open Monshub",
+		Size = UDim2.fromOffset(180, 50), -- Ukuran lebih kecil: lebar 180px, tinggi 50px
+		Position = UDim2.new(0.5, -90, 0, 20), -- Posisi di tengah atas
 		CornerRadius = UDim.new(0.3, 0),
-		StrokeThickness = 3,
+		StrokeThickness = 2,
 		Enabled = true,
-		Draggable = true,
+		Draggable = true, -- Sudah bisa digeser
 		OnlyMobile = false,
 		Icon = "rbxassetid://81294956922394",
 		
