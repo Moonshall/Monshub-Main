@@ -7,7 +7,7 @@ local Window = WindUI:CreateWindow({
 	Author = "by Lenzo",
 	Folder = "Monshub",
 	NewElements = true,
-	Icon = "rbxassetid://YOUR_LENZO_LOGO_ASSET_ID", -- Upload lenzo logo to Roblox and replace this
+	Icon = "rbxassetid://81294956922394",
 	
 	HideSearchBar = false,
 	
@@ -18,7 +18,7 @@ local Window = WindUI:CreateWindow({
 		Enabled = true,
 		Draggable = true,
 		OnlyMobile = false,
-		Icon = "rbxassetid://YOUR_LENZO_LOGO_ASSET_ID",
+		Icon = "rbxassetid://81294956922394",
 		
 		Color = ColorSequence.new(
 			Color3.fromRGB(26, 82, 118),
