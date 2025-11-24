@@ -202,13 +202,17 @@ local Window = NatUI:CreateWindow({
 })
 
 -- Tabs
+local MainTab = Window:Tab({ Title = "Main", Icon = "settings", Desc = "Main settings" })
+local FarmTab = Window:Tab({ Title = "Farm", Icon = "leaf", Desc = "Auto farming" })
+local AutomaticTab = Window:Tab({ Title = "Automatic", Icon = "zap", Desc = "Automation" })
+
 local Tabs = {
-    Main = Window:Tab({ Title = "Main", Icon = "settings", Desc = "Main settings" }),
-    Farm = Window:Tab({ Title = "Farm", Icon = "leaf", Desc = "Auto farming" }),
-    Automatic = Window:Tab({ Title = "Automatic", Icon = "zap", Desc = "Automation" }),
+    Main = MainTab,
+    Farm = FarmTab,
+    Automatic = AutomaticTab,
 }
 
-Window:SelectTab(1)
+Window:SelectTab(2) -- Select Farm tab by default
 
 -- Main Tab
 Tabs.Main:Section({ Title = "Information" })
