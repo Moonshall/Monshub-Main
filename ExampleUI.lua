@@ -3,58 +3,60 @@ local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/rel
 
 -- Create Window
 local Window = WindUI:CreateWindow({
-	Title = "Monshub | V0.0.01",
-	Author = "Premium Hub Script",
+	Title = "Monshub - Premium | v0.0.3.7",
+	Author = "by Lenzo",
 	Folder = "Monshub",
 	NewElements = true,
+	Icon = "rbxassetid://YOUR_LENZO_LOGO_ASSET_ID", -- Upload lenzo logo to Roblox and replace this
 	
 	HideSearchBar = false,
 	
 	OpenButton = {
 		Title = "Open Monshub",
-		CornerRadius = UDim.new(0.2, 0),
-		StrokeThickness = 2,
+		CornerRadius = UDim.new(0.3, 0),
+		StrokeThickness = 3,
 		Enabled = true,
 		Draggable = true,
 		OnlyMobile = false,
+		Icon = "rbxassetid://YOUR_LENZO_LOGO_ASSET_ID",
 		
 		Color = ColorSequence.new(
-			Color3.fromRGB(41, 128, 185),
-			Color3.fromRGB(109, 213, 250)
+			Color3.fromRGB(26, 82, 118),
+			Color3.fromRGB(73, 160, 157)
 		)
 	}
 })
 
--- Blue Sky Theme
+-- Dark Teal Theme (matching the image)
 WindUI:AddTheme({
-	Name = "BlueSkye",
+	Name = "MonsHubDark",
 	
-	Accent = Color3.fromRGB(52, 152, 219),
-	Dialog = Color3.fromRGB(23, 32, 42),
-	Outline = Color3.fromRGB(52, 152, 219),
-	Text = Color3.fromRGB(236, 240, 241),
-	Placeholder = Color3.fromRGB(149, 165, 166),
-	Button = Color3.fromRGB(44, 62, 80),
-	Icon = Color3.fromRGB(52, 152, 219),
+	Accent = Color3.fromRGB(44, 130, 145),
+	Dialog = Color3.fromRGB(31, 41, 51),
+	Outline = Color3.fromRGB(44, 130, 145),
+	Text = Color3.fromRGB(255, 255, 255),
+	Placeholder = Color3.fromRGB(150, 150, 150),
+	Button = Color3.fromRGB(45, 55, 65),
+	Icon = Color3.fromRGB(44, 130, 145),
 	
-	WindowBackground = Color3.fromRGB(23, 32, 42),
+	WindowBackground = Color3.fromRGB(38, 50, 56),
 	
-	TopbarButtonIcon = Color3.fromRGB(52, 152, 219),
-	TopbarTitle = Color3.fromRGB(236, 240, 241),
-	TopbarAuthor = Color3.fromRGB(149, 165, 166),
-	TopbarIcon = Color3.fromRGB(52, 152, 219),
+	TopbarButtonIcon = Color3.fromRGB(44, 130, 145),
+	TopbarTitle = Color3.fromRGB(255, 255, 255),
+	TopbarAuthor = Color3.fromRGB(176, 190, 197),
+	TopbarIcon = Color3.fromRGB(44, 130, 145),
 	
-	TabBackground = Color3.fromRGB(44, 62, 80),
-	TabTitle = Color3.fromRGB(236, 240, 241),
-	TabIcon = Color3.fromRGB(52, 152, 219),
+	TabBackground = Color3.fromRGB(31, 41, 51),
+	TabTitle = Color3.fromRGB(255, 255, 255),
+	TabIcon = Color3.fromRGB(120, 144, 156),
 	
-	ElementBackground = Color3.fromRGB(44, 62, 80),
-	ElementTitle = Color3.fromRGB(236, 240, 241),
-	ElementDesc = Color3.fromRGB(189, 195, 199),
-	ElementIcon = Color3.fromRGB(52, 152, 219),
+	ElementBackground = Color3.fromRGB(45, 55, 65),
+	ElementTitle = Color3.fromRGB(255, 255, 255),
+	ElementDesc = Color3.fromRGB(176, 190, 197),
+	ElementIcon = Color3.fromRGB(44, 130, 145),
 })
 
-WindUI:SetTheme("BlueSkye")
+WindUI:SetTheme("MonsHubDark")
 
 -- Tab: Main
 local MainTab = Window:Tab({
