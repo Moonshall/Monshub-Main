@@ -3,7 +3,7 @@ local NatUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/dy1zn4t
 
 -- Create Window
 local Window = NatUI:CreateWindow({
-	Title = "MonsHub - Premium | v0.0.3.7",
+	Title = "MonsHub | v0.0.0.0",
 	Icon = "rbxassetid://81294956922394",
 	Author = "by Lenzo",
 	Folder = "MonsHub",
