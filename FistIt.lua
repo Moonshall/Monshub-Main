@@ -206,11 +206,6 @@ local Tabs = {
     Main = Window:Tab({ Title = "Main", Icon = "settings", Desc = "Main settings" }),
     Farm = Window:Tab({ Title = "Farm", Icon = "leaf", Desc = "Auto farming" }),
     Automatic = Window:Tab({ Title = "Automatic", Icon = "zap", Desc = "Automation" }),
-    Webhook = Window:Tab({ Title = "Webhook", Icon = "send", Desc = "Webhook" }),
-    Misc = Window:Tab({ Title = "Misc", Icon = "menu", Desc = "Misc" }),
-    Shop = Window:Tab({ Title = "Shop", Icon = "shopping-bag", Desc = "Shop" }),
-    Teleport = Window:Tab({ Title = "Teleport", Icon = "map-pin", Desc = "Teleport" }),
-    Event = Window:Tab({ Title = "Event", Icon = "calendar", Desc = "Events" }),
 }
 
 Window:SelectTab(1)
@@ -267,18 +262,34 @@ Tabs.Farm:Button({ Title = "Teleport to Saved Position", Callback = TeleportToSa
 Tabs.Farm:Toggle({ Title = "Freeze at Saved Position", Default = false, Callback = function(v) Settings.FreezeAtSavedPosition = v if v and Settings.SavedPosition then FreezeAtPosition(Settings.SavedPosition) else if FreezeConnection then FreezeConnection:Disconnect() end end end })
 
 -- Automatic Tab
-Tabs.Automatic:Section({ Title = "Automation" })
-Tabs.Automatic:Toggle({ Title = "Auto Sell", Desc = "Automatically sell fish", Default = false, Callback = function(v) Settings.AutoSell = v end })
-Tabs.Automatic:Toggle({ Title = "Auto Collect", Default = false, Callback = function(v) Settings.AutoCollect = v end })
+Tabs.Automatic:Section({ Title = "Auto Collect" })
+Tabs.Automatic:Toggle({ Title = "Auto Collect Coins", Desc = "Automatically collect coins", Default = false, Callback = function(v) Settings.AutoCollect = v end })
+Tabs.Automatic:Toggle({ Title = "Auto Collect Gems", Desc = "Automatically collect gems", Default = false, Callback = function(v) Settings.AutoCollectGems = v end })
 
--- Webhook Tab
-Tabs.Webhook:Section({ Title = "Webhook Configuration" })
-Tabs.Webhook:Input({ Title = "Webhook URL", Placeholder = "Enter Discord webhook URL", Default = "", Callback = function(v) Settings.WebhookURL = v Notify("Webhook", "Saved!", 3) end })
+Tabs.Automatic:Section({ Title = "Auto Sell" })
+Tabs.Automatic:Toggle({ Title = "Auto Sell Fish", Desc = "Automatically sell fish", Default = false, Callback = function(v) Settings.AutoSell = v end })
+Tabs.Automatic:Toggle({ Title = "Auto Sell at Full Inventory", Desc = "Sell when inventory is full", Default = false, Callback = function(v) Settings.AutoSellFull = v end })
 
--- Misc Tab
-Tabs.Misc:Section({ Title = "Utilities" })
-Tabs.Misc:Button({ Title = "Rejoin Server", Callback = function() game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end })
-Tabs.Misc:Button({ Title = "Destroy GUI", Callback = function() Window:Destroy() end })
+Tabs.Automatic:Section({ Title = "Auto Buy" })
+Tabs.Automatic:Toggle({ Title = "Auto Buy Bait", Desc = "Automatically buy bait when empty", Default = false, Callback = function(v) Settings.AutoBuyBait = v end })
+Tabs.Automatic:Dropdown({ Title = "Select Bait", Values = {"Basic Bait", "Advanced Bait", "Premium Bait"}, Value = "Basic Bait", Callback = function(v) Settings.SelectedBait = v end })
+
+Tabs.Automatic:Section({ Title = "Auto Upgrade" })
+Tabs.Automatic:Toggle({ Title = "Auto Upgrade Rod", Desc = "Automatically upgrade fishing rod", Default = false, Callback = function(v) Settings.AutoUpgradeRod = v end })
+Tabs.Automatic:Toggle({ Title = "Auto Upgrade Backpack", Desc = "Automatically upgrade backpack", Default = false, Callback = function(v) Settings.AutoUpgradeBackpack = v end })
+
+Tabs.Automatic:Section({ Title = "Utilities" })
+Tabs.Automatic:Button({ Title = "Rejoin Server", Desc = "Rejoin current server", Callback = function() game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end })
+Tabs.Automatic:Button({ Title = "Server Hop", Desc = "Join different server", Callback = function() 
+    local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+    for _, server in pairs(servers.data) do
+        if server.id ~= game.JobId then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+            break
+        end
+    end
+end })
+Tabs.Automatic:Button({ Title = "Destroy GUI", Desc = "Remove the GUI", Callback = function() Window:Destroy() end })
 
 -- Init
 Notify("MonsHub", "Fist It loaded!", 5)
