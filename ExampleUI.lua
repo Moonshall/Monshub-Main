@@ -10,16 +10,16 @@ local Window = WindUI:CreateWindow({
 	Icon = "rbxassetid://81294956922394",
 	
 	HideSearchBar = false,
-	Keybind = Enum.KeyCode.RightControl, -- Tekan Right Ctrl untuk toggle UI
+	Keybind = Enum.KeyCode.RightControl,
 	
 	OpenButton = {
 		Title = "Open Monshub",
-		Size = UDim2.fromOffset(180, 50), -- Ukuran lebih kecil: lebar 180px, tinggi 50px
-		Position = UDim2.new(0.5, -90, 0, 20), -- Posisi di tengah atas
+		Size = UDim2.fromOffset(180, 50),
+		Position = UDim2.new(0.5, -90, 0, 20),
 		CornerRadius = UDim.new(0.3, 0),
 		StrokeThickness = 2,
 		Enabled = true,
-		Draggable = true, -- Sudah bisa digeser
+		Draggable = true,
 		OnlyMobile = false,
 		Icon = "rbxassetid://81294956922394",
 		
@@ -29,6 +29,48 @@ local Window = WindUI:CreateWindow({
 		)
 	}
 })
+
+-- Force enable draggable for open button
+task.wait(0.5)
+local OpenButton = game:GetService("CoreGui"):FindFirstChild("WindUI")
+if OpenButton then
+	local Button = OpenButton:FindFirstChild("OpenButton", true)
+	if Button and Button:IsA("GuiButton") or Button:IsA("Frame") then
+		local UserInputService = game:GetService("UserInputService")
+		local dragging, dragInput, dragStart, startPos
+		
+		local function update(input)
+			local delta = input.Position - dragStart
+			Button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+		
+		Button.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = Button.Position
+				
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end)
+		
+		Button.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
+			end
+		end)
+		
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				update(input)
+			end
+		end)
+	end
+end
 
 -- Dark Teal Theme (matching the image)
 WindUI:AddTheme({
