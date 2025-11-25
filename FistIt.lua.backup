@@ -1,0 +1,744 @@
+-- MonsHub | Fist It Script
+-- by Mons
+-- Version: v0.0.2
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Anti-Cheat Bypass
+local mt = getrawmetatable(game)
+local oldNamecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    
+    if method == "Kick" or method == "kick" then
+        return wait(9e9)
+    end
+    
+    return oldNamecall(self, ...)
+end)
+
+setreadonly(mt, true)
+
+-- Settings
+local Settings = {
+    -- Farm Tab - Auto Fishing
+    AutoFishingLegit = false,
+    AutoFishingNormal = false,
+    FishingDelay = 1.5,
+    InstantFishing = false,
+    CastMethod = "Old",
+    CancelDelay = 1.7,
+    CompleteDelay = 1.4,
+    NoAnimation = false,
+    RemoveFishNotification = false,
+    RemoveCutscene = false,
+    RemoveSkinEffect = false,
+    
+    -- Farm Tab - Fishing Area
+    SelectedFishingArea = "None",
+    FreezeAtArea = false,
+    SavedPosition = nil,
+    FreezeAtSavedPosition = false,
+    
+    -- Automatic Tab
+    AutoSell = false,
+    AutoBuyBait = false,
+    AutoUpgradeRod = false,
+    
+    -- Webhook Tab
+    WebhookURL = "",
+    WebhookRareFish = false,
+    
+    -- Teleport Tab
+    TeleportLocation = "Spawn",
+    
+    -- Event Tab
+    AutoJoinEvents = false,
+}
+
+-- Variables
+local OriginalWalkSpeed = 16
+local OriginalJumpPower = 50
+
+-- Remote Functions (Update setelah menggunakan Remote Spy)
+local function GetRemote(name)
+    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+            if string.lower(v.Name):find(string.lower(name)) then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+-- Notification Function
+local function Notify(title, text, duration)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration or 5,
+    })
+end
+
+-- Auto Click/Punch Function
+local function AutoClick()
+    spawn(function()
+        while Settings.AutoClick do
+            task.wait(Settings.ClickDelay)
+            pcall(function()
+                -- Method 1: Find click/punch remote
+                local clickRemote = GetRemote("click") or GetRemote("punch") or GetRemote("attack")
+                if clickRemote then
+                    if clickRemote:IsA("RemoteEvent") then
+                        clickRemote:FireServer()
+                    elseif clickRemote:IsA("RemoteFunction") then
+                        clickRemote:InvokeServer()
+                    end
+                end
+                
+                -- Method 2: Simulate mouse click (backup)
+                if not clickRemote then
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                    task.wait(0.01)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                end
+            end)
+        end
+    end)
+end
+
+-- Auto Rebirth Function
+local function AutoRebirth()
+    spawn(function()
+        while Settings.AutoRebirth do
+            task.wait(1)
+            pcall(function()
+                local rebirthRemote = GetRemote("rebirth") or GetRemote("prestige") or GetRemote("reset")
+                if rebirthRemote then
+                    if rebirthRemote:IsA("RemoteEvent") then
+                        rebirthRemote:FireServer()
+                    elseif rebirthRemote:IsA("RemoteFunction") then
+                        rebirthRemote:InvokeServer()
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- Auto Upgrade Function
+local function AutoUpgrade()
+    spawn(function()
+        while Settings.AutoUpgrade do
+            task.wait(0.5)
+            pcall(function()
+                local upgradeRemote = GetRemote("upgrade") or GetRemote("buyupgrade") or GetRemote("stat")
+                if upgradeRemote then
+                    if upgradeRemote:IsA("RemoteEvent") then
+                        upgradeRemote:FireServer(Settings.UpgradeStat)
+                    elseif upgradeRemote:IsA("RemoteFunction") then
+                        upgradeRemote:InvokeServer(Settings.UpgradeStat)
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- Auto Collect Coins Function
+local function AutoCollectCoins()
+    spawn(function()
+        while Settings.AutoCollectCoins do
+            task.wait(0.1)
+            pcall(function()
+                for _, coin in pairs(workspace:GetDescendants()) do
+                    if coin.Name:lower():find("coin") and coin:IsA("BasePart") then
+                        firetouchinterest(Character.HumanoidRootPart, coin, 0)
+                        task.wait()
+                        firetouchinterest(Character.HumanoidRootPart, coin, 1)
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- Player Modifications
+local function SetWalkSpeed(speed)
+    if Humanoid then
+        Humanoid.WalkSpeed = speed
+    end
+end
+
+local function SetJumpPower(power)
+    if Humanoid then
+        Humanoid.JumpPower = power
+    end
+end
+
+-- Character Reset Handler
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    task.wait(1)
+    
+    if Settings.WalkSpeed ~= OriginalWalkSpeed then
+        SetWalkSpeed(Settings.WalkSpeed)
+    end
+    if Settings.JumpPower ~= OriginalJumpPower then
+        SetJumpPower(Settings.JumpPower)
+    end
+end)
+
+-- Infinite Jump
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if Settings.InfiniteJump and Humanoid then
+        Humanoid:ChangeState("Jumping")
+    end
+end)
+
+-- Load NatUI Library
+local NatUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/dy1zn4t/bmF0dWk-/refs/heads/main/ui.lua"))()
+
+local Window = NatUI:CreateWindow({
+    Title = "MonsHub | Fist It v0.0.3.8",
+    Icon = "rbxassetid://81294956922394",
+    Author = "by Lenzo",
+    Folder = "MonsHub_FistIt",
+    Size = UDim2.fromOffset(580, 460),
+    LiveSearchDropdown = true,
+    AutoSave = true,
+    FileSaveName = "MonsHub_FistIt.json",
+})
+
+-- Create Tabs
+local Tabs = {
+    MainTab = Window:Tab({ Title = "Main", Icon = "settings", Desc = "Main features and information" }),
+    FarmTab = Window:Tab({ Title = "Farm", Icon = "leaf", Desc = "Auto farm features" }),
+    AutomaticTab = Window:Tab({ Title = "Automatic", Icon = "zap", Desc = "Automatic features" }),
+    WebhookTab = Window:Tab({ Title = "Webhook", Icon = "send", Desc = "Webhook notifications" }),
+    MiscTab = Window:Tab({ Title = "Misc", Icon = "settings", Desc = "Miscellaneous settings" }),
+    ShopTab = Window:Tab({ Title = "Shop", Icon = "shopping-bag", Desc = "Shop features" }),
+    TeleportTab = Window:Tab({ Title = "Teleport", Icon = "map-pin", Desc = "Teleport locations" }),
+    EventTab = Window:Tab({ Title = "Event", Icon = "calendar", Desc = "Event features" }),
+    ExclusiveTab = Window:Tab({ Title = "Exclusive", Icon = "star", Desc = "Exclusive features" }),
+}
+
+Window:SelectTab(1)
+
+-- Main Tab
+Tabs.MainTab:Section({ Title = "Information" })
+
+Tabs.MainTab:Paragraph({
+    Title = "Having Problem Using Our Script?",
+    Desc = "Join our Discord server for support and updates!"
+})
+
+Tabs.MainTab:Button({
+    Title = "Join Our Discord Server!",
+    Desc = "Copy Discord invite link",
+    Callback = function()
+        setclipboard("discord.gg/monshub")
+        NatUI:Notify({
+            Title = "MonsHub",
+            Content = "Discord link copied to clipboard!",
+            Icon = "link",
+            Duration = 3,
+        })
+    end
+})
+
+Tabs.MainTab:Section({ Title = "Player" })
+
+Tabs.MainTab:Slider({
+    Title = "WalkSpeed",
+    Min = 16,
+    Max = 200,
+    Default = 16,
+    Callback = function(value)
+        Settings.WalkSpeed = value
+        SetWalkSpeed(value)
+    end
+})
+
+Tabs.MainTab:Slider({
+    Title = "JumpPower",
+    Min = 50,
+    Max = 300,
+    Default = 50,
+    Callback = function(value)
+        Settings.JumpPower = value
+        SetJumpPower(value)
+    end
+})
+
+Tabs.MainTab:Button({
+    Title = "Reset Speed & Jump",
+    Callback = function()
+        Settings.WalkSpeed = OriginalWalkSpeed
+        Settings.JumpPower = OriginalJumpPower
+        SetWalkSpeed(OriginalWalkSpeed)
+        SetJumpPower(OriginalJumpPower)
+        NatUI:Notify({
+            Title = "Reset",
+            Content = "Speed & Jump reset to default",
+            Icon = "check",
+            Duration = 3,
+        })
+    end
+})
+
+Tabs.MainTab:Toggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        Settings.InfiniteJump = state
+    end
+})
+
+Tabs.MainTab:Toggle({
+    Title = "Noclip",
+    Desc = "Turn Off if you want to go underwater places",
+    Default = false,
+    Callback = function(state)
+        Settings.Noclip = state
+        while Settings.Noclip do
+            task.wait()
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+        for _, part in pairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+})
+
+Tabs.MainTab:Button({
+    Title = "Reset Character",
+    Callback = function()
+        Character.Humanoid.Health = 0
+    end
+})
+
+Tabs.MainTab:Section({ Title = "Identity" })
+
+Tabs.MainTab:Toggle({
+    Title = "Hide Username",
+    Desc = "Sets name to discord.gg/monshub. Rejoin to disable.",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local args = {
+                [1] = "discord.gg/monshub"
+            }
+            -- Find name change remote
+            local nameRemote = GetRemote("name") or GetRemote("changename")
+            if nameRemote then
+                nameRemote:FireServer(unpack(args))
+            end
+        end
+    end
+})
+
+Tabs.MainTab:Section({ Title = "Visual" })
+
+Tabs.MainTab:Toggle({
+    Title = "Boost FPS",
+    Default = false,
+    Callback = function(state)
+        Settings.BoostFPS = state
+        if state then
+            game:GetService("Lighting").GlobalShadows = false
+            game:GetService("Lighting").FogEnd = 9e9
+            settings().Rendering.QualityLevel = 1
+        else
+            game:GetService("Lighting").GlobalShadows = true
+            game:GetService("Lighting").FogEnd = 100000
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+        end
+    end
+})
+
+Tabs.MainTab:Toggle({
+    Title = "Disable 3D Rendering",
+    Default = false,
+    Callback = function(state)
+        game:GetService("RunService"):Set3dRenderingEnabled(not state)
+    end
+})
+
+Tabs.MainTab:Toggle({
+    Title = "Player ESP",
+    Default = false,
+    Callback = function(state)
+        Settings.PlayerESP = state
+        -- Add ESP code here
+    end
+})
+
+Tabs.MainTab:Section({ Title = "External" })
+
+Tabs.MainTab:Button({
+    Title = "Fly GUI",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+    end
+})
+
+-- Farm Tab
+Tabs.FarmTab:Section({ Title = "Auto Fishing" })
+
+Tabs.FarmTab:Toggle({
+    Title = "Auto Fishing",
+    Desc = "Automatically fish when idle",
+    Default = false,
+    Callback = function(state)
+        Settings.AutoFishing = state
+        if state then
+            spawn(function()
+                while Settings.AutoFishing do
+                    task.wait(0.5)
+                    pcall(function()
+                        local fishRemote = GetRemote("fish") or GetRemote("cast") or GetRemote("fishing")
+                        if fishRemote then
+                            if fishRemote:IsA("RemoteEvent") then
+                                fishRemote:FireServer()
+                            elseif fishRemote:IsA("RemoteFunction") then
+                                fishRemote:InvokeServer()
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+    end
+})
+
+Tabs.FarmTab:Section({ Title = "Fishing Area" })
+
+Tabs.FarmTab:Dropdown({
+    Title = "Select Fishing Area",
+    Values = { "Starting Island", "Deep Ocean", "Coral Reef", "Ancient Ruins" },
+    Value = "Starting Island",
+    Callback = function(option)
+        Settings.FishingArea = option
+        NatUI:Notify({
+            Title = "Fishing Area",
+            Content = "Selected: " .. option,
+            Icon = "map-pin",
+            Duration = 3,
+        })
+    end
+})
+
+Tabs.FarmTab:Button({
+    Title = "Teleport to Area",
+    Desc = "Teleport to selected fishing area",
+    Callback = function()
+        -- Add teleport logic based on fishing area
+        NatUI:Notify({
+            Title = "Teleport",
+            Content = "Teleporting to " .. (Settings.FishingArea or "Starting Island"),
+            Icon = "zap",
+            Duration = 3,
+        })
+    end
+})
+
+Tabs.FarmTab:Section({ Title = "Custom Position" })
+
+Tabs.FarmTab:Button({
+    Title = "Save Current Position",
+    Desc = "Save your current position",
+    Callback = function()
+        if Character and Character:FindFirstChild("HumanoidRootPart") then
+            Settings.SavedPosition = Character.HumanoidRootPart.CFrame
+            NatUI:Notify({
+                Title = "Position Saved",
+                Content = "Current position saved successfully",
+                Icon = "check",
+                Duration = 3,
+            })
+        end
+    end
+})
+
+Tabs.FarmTab:Button({
+    Title = "Teleport to Saved Position",
+    Desc = "Teleport to your saved position",
+    Callback = function()
+        if Settings.SavedPosition and Character and Character:FindFirstChild("HumanoidRootPart") then
+            Character.HumanoidRootPart.CFrame = Settings.SavedPosition
+            NatUI:Notify({
+                Title = "Teleport",
+                Content = "Teleported to saved position",
+                Icon = "zap",
+                Duration = 3,
+            })
+        else
+            NatUI:Notify({
+                Title = "Error",
+                Content = "No saved position found",
+                Icon = "alert-circle",
+                Duration = 3,
+            })
+        end
+    end
+})
+
+-- Automatic Tab
+Tabs.AutomaticTab:Section({ Title = "Auto Features" })
+
+Tabs.AutomaticTab:Toggle({
+    Title = "Auto Sell Fish",
+    Desc = "Automatically sell fish when inventory full",
+    Default = false,
+    Callback = function(state)
+        Settings.AutoSell = state
+        if state then
+            spawn(function()
+                while Settings.AutoSell do
+                    task.wait(2)
+                    pcall(function()
+                        local sellRemote = GetRemote("sell")
+                        if sellRemote then
+                            sellRemote:FireServer()
+                        end
+                    end)
+                end
+            end)
+        end
+    end
+})
+
+Tabs.AutomaticTab:Toggle({
+    Title = "Auto Buy Bait",
+    Desc = "Automatically buy bait when low",
+    Default = false,
+    Callback = function(state)
+        Settings.AutoBuyBait = state
+    end
+})
+
+Tabs.AutomaticTab:Toggle({
+    Title = "Auto Upgrade Rod",
+    Desc = "Automatically upgrade fishing rod",
+    Default = false,
+    Callback = function(state)
+        Settings.AutoUpgradeRod = state
+    end
+})
+
+-- Webhook Tab
+Tabs.WebhookTab:Section({ Title = "Webhook Configuration" })
+
+Tabs.WebhookTab:Input({
+    Title = "Webhook URL",
+    Default = "",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    MultiLine = false,
+    Callback = function(input)
+        Settings.WebhookURL = input
+    end
+})
+
+Tabs.WebhookTab:Toggle({
+    Title = "Notify on Rare Fish",
+    Desc = "Send webhook when catching rare fish",
+    Default = false,
+    Callback = function(state)
+        Settings.WebhookRareFish = state
+    end
+})
+
+Tabs.WebhookTab:Button({
+    Title = "Test Webhook",
+    Desc = "Send test message to webhook",
+    Callback = function()
+        if Settings.WebhookURL and Settings.WebhookURL ~= "" then
+            local data = {
+                ["content"] = "MonsHub Fist It Script - Test Message",
+                ["embeds"] = {{
+                    ["title"] = "Test Notification",
+                    ["description"] = "Your webhook is working correctly!",
+                    ["color"] = 3447003,
+                    ["footer"] = {
+                        ["text"] = "MonsHub by Mons"
+                    }
+                }}
+            }
+            local success = pcall(function()
+                request({
+                    Url = Settings.WebhookURL,
+                    Method = "POST",
+                    Headers = {
+                        ["Content-Type"] = "application/json"
+                    },
+                    Body = game:GetService("HttpService"):JSONEncode(data)
+                })
+            end)
+            if success then
+                NatUI:Notify({
+                    Title = "Webhook",
+                    Content = "Test message sent successfully!",
+                    Icon = "check",
+                    Duration = 3,
+                })
+            end
+        end
+    end
+})
+
+-- Misc Tab
+Tabs.MiscTab:Section({ Title = "Utilities" })
+
+Tabs.MiscTab:Button({
+    Title = "Rejoin Server",
+    Callback = function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end
+})
+
+Tabs.MiscTab:Button({
+    Title = "Server Hop",
+    Callback = function()
+        local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+        for _, server in pairs(servers.data) do
+            if server.id ~= game.JobId then
+                game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                break
+            end
+        end
+    end
+})
+
+Tabs.MiscTab:Button({
+    Title = "Copy Game Link",
+    Callback = function()
+        setclipboard("https://www.roblox.com/games/" .. game.PlaceId)
+        NatUI:Notify({
+            Title = "Copied",
+            Content = "Game link copied to clipboard",
+            Icon = "copy",
+            Duration = 3,
+        })
+    end
+})
+
+-- Shop Tab
+Tabs.ShopTab:Section({ Title = "Quick Buy" })
+
+Tabs.ShopTab:Button({
+    Title = "Buy Basic Rod",
+    Desc = "Purchase basic fishing rod",
+    Callback = function()
+        local buyRemote = GetRemote("buy") or GetRemote("purchase")
+        if buyRemote then
+            buyRemote:FireServer("BasicRod")
+        end
+    end
+})
+
+Tabs.ShopTab:Button({
+    Title = "Buy Bait Pack",
+    Desc = "Purchase bait pack",
+    Callback = function()
+        local buyRemote = GetRemote("buy") or GetRemote("purchase")
+        if buyRemote then
+            buyRemote:FireServer("BaitPack")
+        end
+    end
+})
+
+-- Teleport Tab
+Tabs.TeleportTab:Section({ Title = "Locations" })
+
+Tabs.TeleportTab:Dropdown({
+    Title = "Select Location",
+    Values = { "Spawn", "Shop", "Deep Sea", "Secret Island", "Event Area" },
+    Value = "Spawn",
+    Callback = function(option)
+        Settings.TeleportLocation = option
+    end
+})
+
+Tabs.TeleportTab:Button({
+    Title = "Teleport",
+    Desc = "Teleport to selected location",
+    Callback = function()
+        NatUI:Notify({
+            Title = "Teleport",
+            Content = "Teleporting to " .. (Settings.TeleportLocation or "Spawn"),
+            Icon = "zap",
+            Duration = 3,
+        })
+        -- Add teleport CFrame logic here
+    end
+})
+
+-- Event Tab
+Tabs.EventTab:Section({ Title = "Active Events" })
+
+Tabs.EventTab:Toggle({
+    Title = "Auto Join Events",
+    Desc = "Automatically join available events",
+    Default = false,
+    Callback = function(state)
+        Settings.AutoJoinEvents = state
+    end
+})
+
+Tabs.EventTab:Button({
+    Title = "Check Events",
+    Desc = "View current active events",
+    Callback = function()
+        NatUI:Notify({
+            Title = "Events",
+            Content = "No active events at the moment",
+            Icon = "calendar",
+            Duration = 5,
+        })
+    end
+})
+
+-- Exclusive Tab
+Tabs.ExclusiveTab:Section({ Title = "Premium Features" })
+
+Tabs.ExclusiveTab:Paragraph({
+    Title = "MonsHub Premium",
+    Desc = "Get access to exclusive features and benefits!"
+})
+
+Tabs.ExclusiveTab:Button({
+    Title = "Join Discord for Premium",
+    Desc = "Get premium access",
+    Callback = function()
+        setclipboard("discord.gg/monshub")
+        NatUI:Notify({
+            Title = "Premium",
+            Content = "Discord link copied! Join for premium access",
+            Icon = "star",
+            Duration = 5,
+        })
+    end
+})
+
+-- Initialize
+Notify("MonsHub", "Fist It script loaded! Press RightCtrl to toggle", 5)
