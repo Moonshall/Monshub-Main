@@ -39,9 +39,10 @@ local Config = {
     DebugMode = false,
     
     -- HTTP Settings
-    MaxRetries = 3,
-    RetryDelay = 2,
-    RequestTimeout = 10
+    MaxRetries = 2,
+    RetryDelay = 5,
+    RequestTimeout = 15,
+    InitialDelay = 3 -- Wait before first request
 }
 
 -- ============================================
@@ -50,7 +51,7 @@ local Config = {
 
 local RateLimiter = {
     lastRequest = 0,
-    minDelay = 1, -- Minimum 1 second between requests
+    minDelay = 3, -- Minimum 3 seconds between requests (increased)
 }
 
 function RateLimiter:Wait()
@@ -59,9 +60,7 @@ function RateLimiter:Wait()
     
     if timeSinceLastRequest < self.minDelay then
         local waitTime = self.minDelay - timeSinceLastRequest
-        if Config.DebugMode then
-            print("[MonsHub] Rate limiting: waiting " .. waitTime .. " seconds...")
-        end
+        print("[MonsHub] Rate limiting: waiting " .. math.ceil(waitTime) .. " seconds...")
         task.wait(waitTime)
     end
     
@@ -223,13 +222,17 @@ local function LoadScriptWithRetry(url, maxRetries)
     local retries = 0
     local delay = Config.RetryDelay
     
+    -- Initial delay to avoid immediate rate limit
+    if Config.InitialDelay and Config.InitialDelay > 0 then
+        print("[MonsHub] Waiting " .. Config.InitialDelay .. " seconds before loading...")
+        task.wait(Config.InitialDelay)
+    end
+    
     while retries <= maxRetries do
         -- Apply rate limiting
         RateLimiter:Wait()
         
-        if Config.DebugMode then
-            print("[MonsHub] Attempting HTTP request (Attempt " .. (retries + 1) .. "/" .. (maxRetries + 1) .. ")")
-        end
+        print("[MonsHub] Attempting HTTP request (Attempt " .. (retries + 1) .. "/" .. (maxRetries + 1) .. ")")
         
         local success, result = pcall(function()
             return game:HttpGet(url, true)
@@ -252,16 +255,17 @@ local function LoadScriptWithRetry(url, maxRetries)
         if errorMsg:find("429") or errorMsg:find("Too Many Requests") then
             retries = retries + 1
             if retries <= maxRetries then
-                local waitTime = delay * (2 ^ (retries - 1)) -- Exponential backoff
-                if Config.DebugMode then
-                    warn("[MonsHub] Rate limited! Waiting " .. waitTime .. " seconds before retry...")
-                end
+                local waitTime = delay * (3 ^ retries) -- More aggressive backoff
+                warn("[MonsHub] Rate limited! Waiting " .. waitTime .. " seconds before retry...")
                 CreateNotification(
                     "⏳ Rate Limited",
-                    "Retrying in " .. waitTime .. " seconds... (" .. retries .. "/" .. maxRetries .. ")",
-                    waitTime
+                    "GitHub rate limit hit. Waiting " .. waitTime .. "s... (" .. retries .. "/" .. maxRetries .. ")",
+                    math.min(waitTime, 10)
                 )
                 task.wait(waitTime)
+            else
+                warn("[MonsHub] Max retries reached due to rate limiting")
+                return false, "Rate limited - please wait 60 seconds and try again"
             end
         elseif errorMsg:find("404") or errorMsg:find("Not Found") then
             return false, "Script not found (404)"
@@ -404,12 +408,14 @@ local function LoadScript(scriptName, gameName)
         
         -- All methods failed
         local errorMsg = tostring(scriptContent)
-        if errorMsg:find("429") or errorMsg:find("Too Many Requests") then
+        if errorMsg:find("429") or errorMsg:find("Too Many Requests") or errorMsg:find("Rate limited") then
             CreateNotification(
-                "⚠️ Rate Limited",
-                "Too many requests. Please wait 1-2 minutes and try again.",
-                7
+                "⚠️ Rate Limited by GitHub",
+                "Please wait 2-3 minutes before trying again. Too many requests in short time.",
+                10
             )
+            warn("[MonsHub] RATE LIMITED - Wait 2-3 minutes before retry!")
+            warn("[MonsHub] GitHub has rate limit protection active")
         elseif errorMsg:find("404") then
             CreateNotification(
                 "❌ Not Found",
