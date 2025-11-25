@@ -1,9 +1,26 @@
--- MonsHub | Fist It Script  
+-- MonsHub | Fish It Script  
 -- by Mons
--- Version: v1.0.0
+-- Version: v1.0.1
 
--- Load NatUI Library
-local NatUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/dy1zn4t/bmF0dWk-/refs/heads/main/ui.lua"))()
+print("🎣 Loading MonsHub for Fish It...")
+
+-- Load NatUI Library with error handling
+local NatUI
+local success, err = pcall(function()
+    NatUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/dy1zn4t/bmF0dWk-/refs/heads/main/ui.lua"))()
+end)
+
+if not success or not NatUI then
+    warn("Failed to load NatUI:", err)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "❌ MonsHub Error",
+        Text = "Failed to load UI library. Please check your connection.",
+        Duration = 7,
+    })
+    return
+end
+
+print("✅ NatUI loaded successfully")
 
 -- Services
 local Players = game:GetService("Players")
@@ -47,13 +64,25 @@ local Settings = {
 
 -- Notification
 local function Notify(title, text, duration)
-    NatUI:Notify({
-        Title = title,
-        Content = text,
-        Icon = "bell",
-        Duration = duration or 5,
-    })
+    pcall(function()
+        if NatUI and NatUI.Notify then
+            NatUI:Notify({
+                Title = title,
+                Content = text,
+                Icon = "bell",
+                Duration = duration or 5,
+            })
+        else
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = title,
+                Text = text,
+                Duration = duration or 5,
+            })
+        end
+    end)
 end
+
+print("✅ Functions loaded")
 
 -- Get Remote
 local function GetRemote(name)
@@ -189,17 +218,30 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
 end)
 
--- Create UI
-local Window = NatUI:CreateWindow({
-    Title = "MonsHub | Fist It",
-    Icon = "rbxassetid://81294956922394",
-    Author = "by Mons",
-    Folder = "MonsHub_FistIt",
-    Size = UDim2.fromOffset(580, 460),
-    LiveSearchDropdown = true,
-    AutoSave = true,
-    FileSaveName = "MonsHub_FistIt.json",
-})
+print("🎨 Creating UI...")
+
+-- Create UI with error handling
+local Window
+local windowSuccess, windowErr = pcall(function()
+    Window = NatUI:CreateWindow({
+        Title = "MonsHub | Fish It",
+        Icon = "rbxassetid://81294956922394",
+        Author = "by Mons",
+        Folder = "MonsHub_FishIt",
+        Size = UDim2.fromOffset(580, 460),
+        LiveSearchDropdown = true,
+        AutoSave = true,
+        FileSaveName = "MonsHub_FishIt.json",
+    })
+end)
+
+if not windowSuccess or not Window then
+    warn("Failed to create window:", windowErr)
+    Notify("❌ Error", "Failed to create UI window", 7)
+    return
+end
+
+print("✅ Window created successfully")
 
 -- Tabs
 local MainTab = Window:Tab({ Title = "Main", Icon = "settings", Desc = "Main settings" })
@@ -591,4 +633,16 @@ Tabs.Event:Section({ Title = "Seasonal" })
 Tabs.Event:Paragraph({ Title = "Limited Time", Desc = "Seasonal and holiday events will appear here when active" })
 
 -- Init
-Notify("MonsHub", "Fist It loaded! All tabs ready!", 5)
+print("="..string.rep("=", 50))
+print("✅ MonsHub for Fish It loaded successfully!")
+print("="..string.rep("=", 50))
+
+Notify("✅ MonsHub", "Fish It script loaded! All features ready!", 5)
+
+-- Success message
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "✅ MonsHub Loaded",
+    Text = "Fish It script is ready to use!",
+    Duration = 5,
+    Icon = "rbxassetid://7733779730"
+})
