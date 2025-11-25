@@ -19,14 +19,14 @@ local Config = {
     -- Script URLs (GitHub Raw or your hosting)
     Scripts = {
         ["FishIt"] = "https://raw.githubusercontent.com/Moonshall/Monshub-Main/main/FistIt.lua",
-        ["Default"] = "https://raw.githubusercontent.com/Moonshall/Monshub-Main/main/loadstring.lua"
+        ["Test"] = "https://raw.githubusercontent.com/Moonshall/Monshub-Main/main/test.lua",
+        ["Default"] = "https://raw.githubusercontent.com/Moonshall/Monshub-Main/main/test.lua"
     },
     
     -- Game IDs and their corresponding scripts
     Games = {
-        -- Fist It / Fish It
-        [123456789] = "FishIt",  -- Replace with actual game ID
-        [987654321] = "FishIt",  -- Add more IDs if game has multiple places
+        -- Fish It
+        [121864768012064] = "FishIt",  -- Fish It Main Game
         
         -- Add more games here:
         -- [gameId] = "ScriptName",
