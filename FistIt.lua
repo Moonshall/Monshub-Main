@@ -328,14 +328,14 @@ local function SetNoclip(enabled)
     end
 end
 
--- Safe Character Reset Handler
-SafeExecute(function()
+-- Character Reset Handler
+pcall(function()
     LocalPlayer.CharacterAdded:Connect(function(char)
         Character = char
         Humanoid = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 10)
         HumanoidRootPart = char:FindFirstChild("HumanoidRootPart") or char:WaitForChild("HumanoidRootPart", 10)
     end)
-end, "Character reset handler failed")
+end)
 
 print("🎨 Creating UI...")
 
