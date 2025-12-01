@@ -34,8 +34,12 @@ local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
 -- Settings
 local Settings = {
+    AutoFishingServer = false,
     AutoFishingLegit = false,
     AutoFishingNormal = false,
+    AutoClaimNotifications = false,
+    AutoSellAll = false,
+    SellAllDelay = 5,
     FishingDelay = 1.5,
     InstantFishing = false,
     CastMethod = "Old",
@@ -86,39 +90,152 @@ print("✅ Functions loaded")
 
 -- Get Remote
 local function GetRemote(name)
-    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
-        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-            if string.lower(v.Name):find(string.lower(name)) then
-                return v
+    local success, remote = pcall(function()
+        if name == "ChargeFishingRod" or name == "cast" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RF/ChargeFishingRod")
+        elseif name == "UpdateAutoFishingState" or name == "autofishing" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RF/UpdateAutoFishingState")
+        elseif name == "RequestFishingMinigameStarted" or name == "minigame" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RF/RequestFishingMinigameStarted")
+        elseif name == "FishingCompleted" or name == "complete" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RE/FishingCompleted")
+        elseif name == "ClaimNotification" or name == "claim" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RE/ClaimNotification")
+        elseif name == "SellAllItems" or name == "sellall" then
+            return game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net"):WaitForChild("RF/SellAllItems")
+        end
+        -- Fallback: search in descendants
+        for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+            if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+                if string.lower(v.Name):find(string.lower(name)) then
+                    return v
+                end
             end
         end
-    end
-    return nil
+        return nil
+    end)
+    return success and remote or nil
 end
 
 -- Auto Fishing Functions
 local function CastFishingRod()
     pcall(function()
-        local castRemote = GetRemote("cast")
+        local castRemote = GetRemote("ChargeFishingRod")
         if castRemote then
             if castRemote:IsA("RemoteEvent") then
-                castRemote:FireServer(Settings.CastMethod)
+                castRemote:FireServer()
             elseif castRemote:IsA("RemoteFunction") then
-                castRemote:InvokeServer(Settings.CastMethod)
+                castRemote:InvokeServer()
             end
+        else
+            warn("ChargeFishingRod remote not found")
         end
     end)
 end
 
 local function ReelFish()
     pcall(function()
-        local reelRemote = GetRemote("reel")
+        local reelRemote = GetRemote("FishingCompleted")
         if reelRemote then
             if reelRemote:IsA("RemoteEvent") then
                 reelRemote:FireServer()
             elseif reelRemote:IsA("RemoteFunction") then
                 reelRemote:InvokeServer()
             end
+        else
+            warn("FishingCompleted remote not found")
+        end
+    end)
+end
+
+-- Auto Fishing State Function
+local function SetAutoFishing(enabled)
+    pcall(function()
+        local autoFishRemote = GetRemote("UpdateAutoFishingState")
+        if autoFishRemote then
+            if autoFishRemote:IsA("RemoteEvent") then
+                autoFishRemote:FireServer(enabled)
+            elseif autoFishRemote:IsA("RemoteFunction") then
+                autoFishRemote:InvokeServer(enabled)
+            end
+        else
+            warn("UpdateAutoFishingState remote not found")
+        end
+    end)
+end
+
+-- Start Fishing Minigame Function
+local function StartFishingMinigame()
+    pcall(function()
+        local minigameRemote = GetRemote("RequestFishingMinigameStarted")
+        if minigameRemote then
+            if minigameRemote:IsA("RemoteEvent") then
+                minigameRemote:FireServer()
+            elseif minigameRemote:IsA("RemoteFunction") then
+                minigameRemote:InvokeServer()
+            end
+        else
+            warn("RequestFishingMinigameStarted remote not found")
+        end
+    end)
+end
+
+-- Complete Fishing Function
+local function CompleteFishing()
+    pcall(function()
+        local completeRemote = GetRemote("FishingCompleted")
+        if completeRemote then
+            completeRemote:FireServer()
+        else
+            warn("FishingCompleted remote not found")
+        end
+    end)
+end
+
+-- Claim Notification Function
+local function ClaimNotification()
+    pcall(function()
+        local claimRemote = GetRemote("ClaimNotification")
+        if claimRemote then
+            claimRemote:FireServer()
+        else
+            warn("ClaimNotification remote not found")
+        end
+    end)
+end
+
+-- Auto Claim Notifications
+local function AutoClaimNotifications()
+    spawn(function()
+        while Settings.AutoClaimNotifications do
+            ClaimNotification()
+            wait(1) -- Check every second
+        end
+    end)
+end
+
+-- Sell All Items Function
+local function SellAllItems()
+    pcall(function()
+        local sellRemote = GetRemote("SellAllItems")
+        if sellRemote then
+            if sellRemote:IsA("RemoteFunction") then
+                sellRemote:InvokeServer()
+            else
+                sellRemote:FireServer()
+            end
+        else
+            warn("SellAllItems remote not found")
+        end
+    end)
+end
+
+-- Auto Sell All Items
+local function AutoSellAllItems()
+    spawn(function()
+        while Settings.AutoSellAll do
+            SellAllItems()
+            wait(Settings.SellAllDelay or 5) -- Default 5 second delay
         end
     end)
 end
@@ -211,12 +328,14 @@ local function SetNoclip(enabled)
     end
 end
 
--- Character Reset
-LocalPlayer.CharacterAdded:Connect(function(char)
-    Character = char
-    Humanoid = char:WaitForChild("Humanoid")
-    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
-end)
+-- Safe Character Reset Handler
+SafeExecute(function()
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        Character = char
+        Humanoid = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 10)
+        HumanoidRootPart = char:FindFirstChild("HumanoidRootPart") or char:WaitForChild("HumanoidRootPart", 10)
+    end)
+end, "Character reset handler failed")
 
 print("🎨 Creating UI...")
 
@@ -292,9 +411,17 @@ Tabs.Main:Button({ Title = "Fly GUI", Callback = function() loadstring(game:Http
 
 -- Farm Tab
 Tabs.Farm:Section({ Title = "Auto Fishing" })
+Tabs.Farm:Toggle({ Title = "Auto Fishing (Server)", Desc = "Toggle server-side auto fishing", Default = false, Callback = function(v) Settings.AutoFishingServer = v; SetAutoFishing(v) end })
 Tabs.Farm:Toggle({ Title = "Auto Fishing Legit", Desc = "Auto Catch Fish with throw animation", Default = false, Callback = function(v) Settings.AutoFishingLegit = v if v then AutoFishingLegit() end end })
 Tabs.Farm:Toggle({ Title = "Auto Fishing (Normal)", Desc = "Auto Catch Fish", Default = false, Callback = function(v) Settings.AutoFishingNormal = v if v then AutoFishingNormal() end end })
 Tabs.Farm:Slider({ Title = "Delay", Min = 0.5, Max = 5, Default = 1.5, Callback = function(v) Settings.FishingDelay = v end })
+
+Tabs.Farm:Section({ Title = "Manual Fishing" })
+Tabs.Farm:Button({ Title = "Start Fishing Minigame", Desc = "Manually start fishing minigame", Callback = function() StartFishingMinigame() end })
+Tabs.Farm:Button({ Title = "Cast Fishing Rod", Desc = "Manually cast fishing rod", Callback = function() CastFishingRod() end })
+Tabs.Farm:Button({ Title = "Complete Fishing", Desc = "Manually complete fishing catch", Callback = function() CompleteFishing() end })
+Tabs.Farm:Button({ Title = "Claim Notification", Desc = "Manually claim notification reward", Callback = function() ClaimNotification() end })
+Tabs.Farm:Button({ Title = "Sell All Items", Desc = "Manually sell all items in inventory", Callback = function() SellAllItems() end })
 
 Tabs.Farm:Section({ Title = "Fast Instant Fishing" })
 Tabs.Farm:Toggle({ Title = "Instant Fishing", Desc = "Instant Catch a Fish", Default = false, Callback = function(v) Settings.InstantFishing = v if v then InstantFishing() end end })
@@ -321,10 +448,13 @@ Tabs.Farm:Toggle({ Title = "Freeze at Saved Position", Default = false, Callback
 Tabs.Automatic:Section({ Title = "Auto Collect" })
 Tabs.Automatic:Toggle({ Title = "Auto Collect Coins", Desc = "Automatically collect coins", Default = false, Callback = function(v) Settings.AutoCollect = v end })
 Tabs.Automatic:Toggle({ Title = "Auto Collect Gems", Desc = "Automatically collect gems", Default = false, Callback = function(v) Settings.AutoCollectGems = v end })
+Tabs.Automatic:Toggle({ Title = "Auto Claim Notifications", Desc = "Automatically claim notification rewards", Default = false, Callback = function(v) Settings.AutoClaimNotifications = v if v then AutoClaimNotifications() end end })
 
 Tabs.Automatic:Section({ Title = "Auto Sell" })
 Tabs.Automatic:Toggle({ Title = "Auto Sell Fish", Desc = "Automatically sell fish", Default = false, Callback = function(v) Settings.AutoSell = v end })
 Tabs.Automatic:Toggle({ Title = "Auto Sell at Full Inventory", Desc = "Sell when inventory is full", Default = false, Callback = function(v) Settings.AutoSellFull = v end })
+Tabs.Automatic:Toggle({ Title = "Auto Sell All Items", Desc = "Automatically sell all items with delay", Default = false, Callback = function(v) Settings.AutoSellAll = v if v then AutoSellAllItems() end end })
+Tabs.Automatic:Slider({ Title = "Sell All Delay", Min = 1, Max = 30, Default = 5, Callback = function(v) Settings.SellAllDelay = v end })
 
 Tabs.Automatic:Section({ Title = "Auto Buy" })
 Tabs.Automatic:Toggle({ Title = "Auto Buy Bait", Desc = "Automatically buy bait when empty", Default = false, Callback = function(v) Settings.AutoBuyBait = v end })
